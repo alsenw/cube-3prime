@@ -1,7 +1,7 @@
 
 # cube_cubeprime_fast
 
-##> ⚠️ **Disclaimer**  
+## ⚠️ **Disclaimer**  
 > This project is an experimental computational exploration.  
 > Although large numerical ranges were tested, the implementation may still contain logical, numerical, or performance limitations.  
 > The results presented here provide computational evidence only and must not be interpreted as a formal mathematical proof or complete verification of the conjecture.
