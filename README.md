@@ -1,6 +1,11 @@
 
 # cube_cubeprime_fast
 
+> ##⚠️ **Disclaimer**  
+> This project is an experimental computational exploration.  
+> Although large numerical ranges were tested, the implementation may still contain logical, numerical, or performance limitations.  
+> The results presented here provide computational evidence only and must not be interpreted as a formal mathematical proof or complete verification of the conjecture.
+
 ## Overview
 This program tests the  **Cube-Three-Prime Conjecture**:that every integer cube `n³` (for `n > 2`)
 can be expressed as the sum of **three distinct prime numbers**:
