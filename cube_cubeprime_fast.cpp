@@ -31,7 +31,7 @@ struct Sieve {
     inline bool isPrimeSmall(uint32_t x) const { return !mark[x]; }
 };
 
-/*──────────────────── 2. Deterministic Miller–Rabin for 64‑bit ───────────*/
+/*────────────── 2. Miller–Rabin primality test (original implementation) ──────────────*/
 inline uint64_t mul_mod(uint64_t a, uint64_t b, uint64_t m) {
     return static_cast<uint64_t>((__uint128_t)a * b % m);
 }
@@ -49,7 +49,7 @@ bool isPrime64(uint64_t n, const Sieve& sv) {
         return sv.isPrimeSmall(static_cast<uint32_t>(n));
     if ((n & 1) == 0) return false;     // even > 2 are composite
 
-    static const uint64_t bases[] = {2, 3, 5, 7, 11, 13, 17};   // proven set
+    static const uint64_t bases[] = {2, 3, 5, 7, 11, 13, 17};   // original base set; not deterministic over the full uint64_t range
     uint64_t d = n - 1, r = 0;
     while (!(d & 1)) { d >>= 1; ++r; } // write n − 1 = 2ʳ · d  with d odd
 

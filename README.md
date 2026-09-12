@@ -1,8 +1,13 @@
 
 # cube_cubeprime_fast
 
+## ⚠️ **Disclaimer**  
+> This project is an experimental computational exploration.  
+> Although large numerical ranges were tested, the implementation may still contain logical, numerical, or performance limitations.  
+> The results presented here provide computational evidence only and must not be interpreted as a formal mathematical proof or complete verification of the conjecture.
+
 ## Overview
-This program tests the **cubic cube three‑prime conjecture** that every integer cube `n³` (for `n > 2`)
+This program tests the  **Cube-Three-Prime Conjecture**:that every integer cube `n³` (for `n > 2`)
 can be expressed as the sum of **three distinct prime numbers**:
 
 ```
@@ -13,28 +18,55 @@ The code is tuned to finish the range **3 → 20 000** in a few seconds on a mod
 quad‑core CPU. It has been successfully tested up to **n ≤ 2 642 245**, the largest value that keeps
 `n³` inside the unsigned 64‑bit range.
 
+### Observations
+
+While testing all odd cubes in the range "3 ≤ n ≤ 2,642,245", we found that every cube had at least one valid representation as the sum of three distinct primes that included the number "3".
+
+That is, for each such case, there existed at least one instance where
+
+"n³ = p + q + r" with "{p, q, r} ⊇ {3}"
+
+This consistent pattern suggests that `"3"` plays a foundational role in representing large odd cubes — likely due to being the smallest odd prime, making it a natural anchor in satisfying both the parity and size required for valid prime triplets.
+
 ---
 
 ## Algorithm
 
-1. **Prime sieve** – A compact bit‑array sieve of Eratosthenes up to **100 million**
+1. **Prime sieve** – A compact byte‑array sieve of Eratosthenes up to **100 million**
 is built once at program start.
 * All primes are kept in a vector for fast iteration.
 * Primality checks for small numbers reuse this table directly.
 
-2. **Deterministic Miller–Rabin** – For numbers above `10 000 000`, a 7‑base
-Miller–Rabin test, proven deterministic for the 64‑bit range, is used.
+2. **Miller–Rabin primality testing** – For numbers above `10 000 000`, the original implementation uses the fixed bases `{2, 3, 5, 7, 11, 13, 17}`. This base set is not deterministic over the full unsigned 64-bit range; see the validation note below.
 
 3. **Search strategy**
 * **Phase 0** – If `n³` is even, try the pattern `2 + p + q`.
-* **Phase 1** – Double loop over distinct small primes `p` and `q`;
-compute `r = n³ − p − q` and test `r` with Miller–Rabin.
+* **Phase 1** – Double loop over distinct small primes`p`and`q`;               compute `r = n³ − p − q` and test `r` with Miller–Rabin.
 
 4. **Parallelism** – A simple work‑stealing counter distributes consecutive `n`
 values to a pool of worker threads (`thread::hardware_concurrency()`).
 
 5. **Output** – Each worker pushes its local results into a shared vector,
 which is finally sorted and saved to **results.txt**.
+
+### Validation note — added 13 September 2026
+
+The original experiment used the Miller–Rabin bases
+`{2, 3, 5, 7, 11, 13, 17}`.
+
+I later learned that this witness set is not deterministic across the
+entire unsigned 64-bit range. The original implementation and the
+reported experimental results are intentionally preserved as part of
+the project's historical record and have not yet been independently
+revalidated with a full-range 64-bit primality test.
+
+This limitation does not by itself show that any reported representation
+is incorrect. It means that, for sufficiently large candidates, the
+original run did not provide a deterministic primality guarantee.
+
+Accordingly, the numerical observations reported in this README should
+be understood as results produced by the original implementation,
+pending independent revalidation.
 
 ---
 
@@ -58,23 +90,24 @@ end n (3-2642245): 20000
 done: 19998 lines → results.txt
 ```
 
-The program asks for **inclusive** start / end values and writes every
-representation (or a “NO REPRESENTATION FOUND” line) to `results.txt`.
+The program asks for **inclusive** start / end values and writes one valid representation (or a “NO REPRESENTATION FOUND” line) to results.tx.
 
 ---
 
 ## Performance notes
 
-* The program was tested on a Lenovo IdeaPad Pro 5 16IRH8 laptop with an ~5.3_3.5 GHz Intel Core i7 (13th Gen) processor, running in High Performance Mode.
-* It utilized **20 threads** at full capacity with no thermal, power, or memory throttling.
+| Metric                     | Details                                                   |
+|---------------------------|------------------------------------------------------------|
+| **Laptop tested on**      | Lenovo IdeaPad Pro 5 16IRH8 (Intel Core i7, 13th Gen)     |
+| **CPU speed**             | ~5.3 GHz turbo / 3.5 GHz base                              |
+| **Threads used**          | 20 (full capacity, no thermal/power throttling)           |
+| **Tested range**          | From `n = 3` to `n = 2,642,245` (≈2.6 million cubes)       |
+| **Execution time**        | ≈ 7.3 minutes                                              |
+| **RAM usage**             | Starts ~2–3 GB, peaks at 4.5 GB                            |
+| **RAM type**              | 16 GB DDR5                                                 |
+| **Alternate benchmark**   | Ryzen 5 (3.5 GHz, 4c/8t): `3 → 20 000` in ≈19.2 seconds     |
+| **Memory footprint (sieve)** | ≤ 110 MiB (~100M-byte sieve dominates usage)             |
 
-* Tested range: from 3 to 2,642,245 (≈2.6 million cube values)
-* Execution time: **≈ 7.3 minutes**
-* Memory usage: started at **~2–3 GB** and peaked at **4.5 GB**
-* RAM: 16 GB DDR5
-* On a 3.5 GHz Ryzen 5 (4 cores / 8 threads) the default range `3→20 000`
-completes in **≈ 19.2s**.
-* Memory footprint is **≤ 110 MiB** (dominated by the 100 Mbit sieve).
 
 ---
 
@@ -114,6 +147,8 @@ Select-String -Path results.txt -Pattern "NO REPRESENTATION FOUND" | ForEach-Obj
 ```
 
 > **Status note:** We have already scanned the full allowable range ( 3 ≤ n ≤ 2 642 245 ) with the current settings (distinct primes, `p, q ≤ 10⁸`) and obtained zero counter-examples. The steps above are provided for clarity and for anyone who reruns the experiment under different parameters.
+>
+> This status describes the output of the original implementation. Because of the Miller–Rabin limitation documented above, it should not be interpreted as an independent revalidation of the primality of every reported term.
 
 ---
 
@@ -129,10 +164,9 @@ techniques could prune the search further.
 faster large‑prime rejection.
 * Extending the search to the full 128-bit domain (i.e., `n³ < 2¹²⁸`, so `n ≤ ≈ 7 × 10¹²`) is arithmetically straightforward with 128-bit limbs, and ranges of a few million `n` remain tractable on contemporary CPUs; however, covering the entire space would need massive parallelism—porting the tight inner loops to CUDA/OpenCL and running on multi-GPU hardware (or GPU clusters) is the most practical way to achieve the required throughput.
 
-
 ---
 
-## Conjecture: Every integer cube n³ (n > 2) = p + q + r with distinct primes
+### Conjecture: Every integer cube n³ (n > 2) = p + q + r with distinct primes
 
 Author: Generated by Mr. Hamza Alsenwi & ChatGPT (OpenAI o3 & 4o), (My assistant and companion, even if just an LLM)
 
